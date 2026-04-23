@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}AFYA LINK | Smart Health Platform{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div>
+        <div style="font-size: 4rem; margin-bottom: 1rem;">💚</div>
+        <h1 style="margin-bottom: 0.5rem; font-size: 3.5rem;">AFYA LINK</h1>
+        <p style="font-size: 1.25rem; margin-bottom: 2rem; color: #555;">Smart health. Stronger lives.</p>
+        <p style="max-width: 700px; margin: 0 auto 2rem; font-size: 1.05rem; line-height: 1.8; color: #666;">A modern health platform. Securely manage hospitals, doctors, patients, and health records with a powerful REST API.</p>
+        
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 3rem;">
+            {% if user.is_authenticated %}
+                <a href="/dashboard/" class="button" style="text-decoration: none;">📊 Go to Dashboard</a>
+                <a href="/api-frontend/" class="button secondary" style="text-decoration: none;">🔗 API Explorer</a>
+            {% else %}
+                <a href="/accounts/login/" class="button" style="text-decoration: none;">🔐 Sign In</a>
+                <a href="/admin/" class="button secondary" style="text-decoration: none;">⚙️ Admin</a>
+            {% endif %}
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">💼</div>
+                <div class="label">Full REST API</div>
+                <div class="value" style="font-size: 1.1rem; color: #0f766e; font-weight: 600;">/api/</div>
+            </div>
+            <div class="stat-card">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📱</div>
+                <div class="label">Personalized Dashboard</div>
+                <div class="value" style="font-size: 1.1rem; color: #0f766e; font-weight: 600;">/dashboard/</div>
+            </div>
+            <div class="stat-card">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎛️</div>
+                <div class="label">Admin Interface</div>
+                <div class="value" style="font-size: 1.1rem; color: #0f766e; font-weight: 600;">/admin/</div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

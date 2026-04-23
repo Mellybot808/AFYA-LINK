@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Login | AFYA LINK{% endblock %}
+
+{% block content %}
+<div style="display: grid; place-items: center; min-height: 60vh; padding: 2rem;">
+    <div class="card" style="max-width: 420px; width: 100%;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔐</div>
+            <h1 style="margin: 0 0 0.5rem; color: #0f766e; font-size: 1.8rem;">Sign In</h1>
+            <p class="text-small">Access your AFYA LINK dashboard</p>
+        </div>
+        
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% if form.errors %}
+                <div style="background: #fef2f2; border: 2px solid #fecaca; color: #991b1b; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; font-size: 0.9rem;">
+                    <strong>⚠️ Login failed</strong>
+                    <p style="margin: 0.5rem 0 0; font-size: 0.85rem;">Please check your username and password.</p>
+                </div>
+            {% endif %}
+            
+            <div class="field">
+                <label for="id_username">Username</label>
+                {{ form.username }}
+            </div>
+            <div class="field">
+                <label for="id_password">Password</label>
+                {{ form.password }}
+            </div>
+            
+            <button class="button" type="submit" style="width: 100%; margin-bottom: 1rem;">Sign in →</button>
+        </form>
+        
+        <div style="text-align: center; border-top: 1px solid #e0e5ec; padding-top: 1.5rem; margin-top: 1.5rem;">
+            <p class="text-small" style="margin: 0 0 1rem;">Demo credentials:</p>
+            <div style="background: #f8fafc; border: 1px solid #e0e5ec; border-radius: 10px; padding: 1rem; font-family: monospace; font-size: 0.85rem; text-align: left;">
+                <div><strong>Username:</strong> admin</div>
+                <div><strong>Password:</strong> admin123</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

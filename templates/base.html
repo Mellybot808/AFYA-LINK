@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AFYA LINK{% endblock %}</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); color: #1a1a1a; min-height: 100vh; }
+        .page { min-height: 100vh; display: flex; flex-direction: column; }
+        .site-header { background: linear-gradient(135deg, #0f766e 0%, #157f78 100%); color: white; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(15, 118, 110, 0.15); }
+        .site-header .brand a { color: white; text-decoration: none; font-weight: 700; font-size: 1.5rem; letter-spacing: -0.5px; }
+        .site-header nav { display: flex; gap: 2rem; align-items: center; }
+        .site-header nav a { color: rgba(255, 255, 255, 0.9); text-decoration: none; font-weight: 500; font-size: 0.95rem; transition: all 0.2s ease; padding: 0.5rem 1rem; border-radius: 8px; }
+        .site-header nav a:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        main { flex: 1; padding: 3rem 2rem; max-width: 1400px; margin: 0 auto; width: 100%; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); padding: 2rem; border: 1px solid rgba(255, 255, 255, 0.5); transition: all 0.3s ease; }
+        .card:hover { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12); }
+        .grid { display: grid; gap: 2rem; }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-cols-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+        .button { display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f766e 0%, #157f78 100%); color: white; border: none; border-radius: 12px; padding: 0.9rem 1.8rem; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease; cursor: pointer; }
+        .button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15, 118, 110, 0.3); }
+        .button.secondary { background: #f0f3f7; color: #1a1a1a; border: 2px solid #e0e5ec; }
+        .button.secondary:hover { background: #e8ecf3; border-color: #0f766e; }
+        .field { display: flex; flex-direction: column; margin-bottom: 1.5rem; }
+        .field label { font-weight: 600; margin-bottom: 0.75rem; font-size: 0.95rem; color: #333; }
+        .field input { border: 2px solid #e0e5ec; border-radius: 10px; padding: 0.9rem 1.2rem; font-size: 1rem; transition: all 0.2s ease; }
+        .field input:focus { outline: none; border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1); }
+        .text-small { color: #666; font-size: 0.9rem; line-height: 1.6; }
+        .panel { background: linear-gradient(135deg, #f8fafc 0%, #f0f3f7 100%); border: 1px solid #e0e5ec; border-radius: 14px; padding: 1.8rem; }
+        .panel h2 { margin-top: 0; color: #0f766e; font-size: 1.3rem; margin-bottom: 1.2rem; }
+        .panel ul { list-style: none; padding: 0; margin: 0; }
+        .panel li { padding: 0.8rem 0; border-bottom: 1px solid #e0e5ec; font-size: 0.95rem; }
+        .panel li:last-child { border-bottom: none; }
+        .stat-card { background: linear-gradient(135deg, #fff 0%, #f8fafc 100%); border: 1px solid #e0e5ec; border-radius: 14px; padding: 1.5rem; text-align: center; }
+        .stat-card .value { font-size: 2rem; font-weight: 700; color: #0f766e; margin: 0.5rem 0; }
+        .stat-card .label { color: #666; font-size: 0.9rem; margin: 0; font-weight: 500; }
+        .hero { display: grid; place-items: center; min-height: 60vh; text-align: center; padding: 2rem; }
+        .hero h1 { margin-bottom: 0.5rem; font-size: 3rem; background: linear-gradient(135deg, #0f766e 0%, #157f78 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; }
+        .hero p { margin: 1rem auto; font-size: 1.1rem; line-height: 1.8; max-width: 680px; color: #555; }
+        .stats { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-top: 2rem; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="site-header">
+        <div class="brand"><a href="/">💚 AFYA LINK</a></div>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/dashboard/">Dashboard</a>
+            <a href="/api-frontend/">API UI</a>
+            {% if user.is_authenticated %}
+                <a href="/accounts/logout/">Logout</a>
+            {% else %}
+                <a href="/accounts/login/">Login</a>
+            {% endif %}
+        </nav>
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</div>
+</body>
+</html>
