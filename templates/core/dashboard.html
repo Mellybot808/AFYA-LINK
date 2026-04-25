@@ -25,9 +25,14 @@
         <div class="label">Health Records</div>
         <div class="value">{{ records|length }}</div>
     </div>
+    <div class="stat-card">
+        <div style="font-size: 1.8rem;">📅</div>
+        <div class="label">Upcoming Appointments</div>
+        <div class="value">{{ appointments|length }}</div>
+    </div>
 </div>
 
-<div class="grid grid-cols-2">
+<div class="grid grid-cols-3">
     <div class="card">
         <h2 style="margin-top: 0; color: #0f766e; display: flex; align-items: center; gap: 0.5rem;">📋 Recent Health Records</h2>
         <p class="text-small">Your latest medical history and diagnoses</p>
@@ -55,12 +60,51 @@
     </div>
     
     <div class="card">
-        <h2 style="margin-top: 0; color: #0f766e; display: flex; align-items: center; gap: 0.5rem;">🔗 Quick Links</h2>
-        <p class="text-small">Access other parts of the platform</p>
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
-            <a href="/api/" class="button" style="width: 100%; text-align: center; text-decoration: none;">📊 REST API</a>
-            <a href="/api-frontend/" class="button secondary" style="width: 100%; text-align: center; text-decoration: none;">🌐 API Explorer</a>
-            <a href="/admin/" class="button secondary" style="width: 100%; text-align: center; text-decoration: none;">⚙️ Admin Panel</a>
+        <h2 style="margin-top: 0; color: #0f766e; display: flex; align-items: center; gap: 0.5rem;">📅 Upcoming Appointments</h2>
+        <p class="text-small">Your scheduled medical appointments</p>
+        <div class="panel">
+            {% if appointments %}
+                <ul style="margin: 0; padding: 0;">
+                    {% for appointment in appointments %}
+                    <li style="padding: 1rem 0; border-bottom: 1px solid rgba(0,0,0, 0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="color: #1a1a1a;">{{ appointment.doctor.user.get_full_name }}</strong>
+                                <p style="margin: 0.3rem 0 0; font-size: 0.85rem; color: #666;">{{ appointment.hospital.name }}</p>
+                                {% if appointment.reason %}
+                                    <p style="margin: 0.3rem 0 0; font-size: 0.85rem; color: #666;">{{ appointment.reason|truncatewords:10 }}</p>
+                                {% endif %}
+                            </div>
+                            <span style="background: #f0f3f7; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; color: #666; white-space: nowrap;">{{ appointment.scheduled_time|date:'M d, H:i' }}</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p style="text-align: center; color: #999; padding: 2rem 0; margin: 0;">No upcoming appointments</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2 style="margin-top: 0; color: #0f766e; display: flex; align-items: center; gap: 0.5rem;">🔔 Notifications</h2>
+        <p class="text-small">Important updates and reminders</p>
+        <div class="panel">
+            {% if notifications %}
+                <ul style="margin: 0; padding: 0;">
+                    {% for notification in notifications %}
+                    <li style="padding: 1rem 0; border-bottom: 1px solid rgba(0,0,0, 0.05);">
+                        <div>
+                            <strong style="color: #1a1a1a;">{{ notification.title }}</strong>
+                            <p style="margin: 0.3rem 0 0; font-size: 0.85rem; color: #666;">{{ notification.message|truncatewords:15 }}</p>
+                            <span style="background: #f0f3f7; padding: 0.2rem 0.6rem; border-radius: 8px; font-size: 0.75rem; color: #666;">{{ notification.created_at|date:'M d' }}</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p style="text-align: center; color: #999; padding: 2rem 0; margin: 0;">No new notifications</p>
+            {% endif %}
         </div>
     </div>
 </div>

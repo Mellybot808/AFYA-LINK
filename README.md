@@ -33,20 +33,98 @@ python manage.py runserver
 
 ## Features
 
-- Django authentication with login/logout
+- Django authentication with login/logout and user registration
 - Patient and doctor dashboard views at `/dashboard/`
 - REST API explorer frontend at `/api-frontend/`
-- API endpoints for doctors, patients, hospitals, and health records
+- Comprehensive API endpoints for all major modules
+- Medic Home Visit module: Patient-requested home visits with medic dispatch and GPS matching
+- Patient Portal: Appointment booking, visit history, and notifications
+- Laboratory module: Test ordering, result management, and tracking
+- Pharmacy module: Prescription management, drug stock management, and dispensing
+- Billing module: Automated invoicing, payment tracking, and receipt generation
+- Triage/Nursing module: Vital signs capture, patient prioritization, ward assignment
+- Reception module: Check-in management, queue management, and patient routing
+
+## Future Feature Directions
+
+Since you're in the idea-collection phase, here are some feature directions to explore for AfyaLink:
+
+### 🌍 User-Centered Features
+- **Personalized Health Dashboards**: Allow users to track vitals, appointments, and medication schedules in one place.
+- **Multilingual Support**: Especially important in Kenya and East Africa, where multiple languages are spoken.
+- **Offline Access**: Enable basic functionality without internet, syncing later when online.
+
+### 🔗 Integration & Connectivity
+- **Telemedicine Integration**: Video consultations with doctors directly through the platform.
+- **Wearable Device Sync**: Pull in data from fitness trackers or smartwatches for proactive health monitoring.
+- **Pharmacy & Lab Linkages**: Connect users to nearby pharmacies and labs for prescriptions and test results.
+
+### 🧠 Smart Tools
+- **AI Symptom Checker**: A guided tool that helps users understand possible conditions before visiting a doctor.
+- **Decision Support for Clinicians**: Provide doctors with predictive analytics for diagnosis and treatment planning.
+- **Chatbot for FAQs**: Quick answers to common health questions, appointment reminders, or insurance queries.
+
+### 📊 Community & Education
+- **Health Literacy Modules**: Bite‑sized lessons on nutrition, preventive care, and chronic disease management.
+- **Community Forums**: Safe spaces for patients to share experiences and support each other.
+- **Gamification**: Reward users for healthy habits (e.g., completing daily steps, attending checkups).
+
+### 🔒 Trust & Security
+- **End-to-End Encryption**: For sensitive health data.
+- **Consent Management**: Users control who can access their records.
+- **Audit Trails**: Transparency for all data interactions.
 
 ## URLs
 
 - Home: `/`
 - Dashboard: `/dashboard/`
+- Register: `/register/`
 - Login: `/accounts/login/`
 - Logout: `/accounts/logout/`
 - API: `/api/`
 - API frontend: `/api-frontend/`
 - Admin: `/admin/`
+
+### API Endpoints
+
+**Core Entities**
+- `/api/doctors/` - Doctor management
+- `/api/patients/` - Patient management
+- `/api/hospitals/` - Hospital management
+- `/api/records/` - Health records
+
+**Patient Portal**
+- `/api/appointments/` - Appointment management
+- `/api/notifications/` - User notifications
+
+**Home Visit Module**
+- `/api/medics/` - Medic profiles for home visits
+- `/api/visit-requests/` - Home visit requests
+- `/api/visits/` - Scheduled home visits
+
+**Laboratory Module**
+- `/api/lab-tests/` - Lab test orders
+- `/api/lab-results/` - Lab results
+
+**Pharmacy Module**
+- `/api/prescriptions/` - Patient prescriptions
+- `/api/prescription-items/` - Prescription details
+- `/api/pharmacy-stock/` - Medication inventory
+- `/api/pharmacy-dispensing/` - Prescription fulfillment records
+
+**Billing Module**
+- `/api/bills/` - Patient billing
+- `/api/bill-items/` - Bill line items
+- `/api/payments/` - Payment records
+
+**Triage/Nursing Module**
+- `/api/vital-signs/` - Patient vital signs
+- `/api/triages/` - Triage assessments
+- `/api/ward-beds/` - Ward bed management
+
+**Reception Module**
+- `/api/check-ins/` - Patient check-ins
+- `/api/queues/` - Patient queue management
 
 ## Notes
 
