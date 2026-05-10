@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor Portal | AFYA LINK{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1 style="margin: 0; font-size: 2.5rem; color: #1a1a1a;">Doctor Portal</h1>
+    <p style="margin-top: 0.5rem; color: #666;">Dr. {{ user.get_full_name }}, manage your patients and appointments</p>
+</div>
+
+<!-- Key Metrics -->
+<div class="grid grid-cols-4" style="margin: 2rem 0;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 12px;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">👥</div>
+        <div style="font-size: 0.9rem; opacity: 0.9;">Total Patients</div>
+        <div style="font-size: 2rem; font-weight: bold; margin-top: 0.5rem;">{{ total_patients|default:0 }}</div>
+    </div>
+    
+    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 2rem; border-radius: 12px;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📅</div>
+        <div style="font-size: 0.9rem; opacity: 0.9;">Appointments Today</div>
+        <div style="font-size: 2rem; font-weight: bold; margin-top: 0.5rem;">{{ appointments_today|default:0 }}</div>
+    </div>
+    
+    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 2rem; border-radius: 12px;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">💊</div>
+        <div style="font-size: 0.9rem; opacity: 0.9;">Prescriptions</div>
+        <div style="font-size: 2rem; font-weight: bold; margin-top: 0.5rem;">{{ total_prescriptions|default:0 }}</div>
+    </div>
+    
+    <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 2rem; border-radius: 12px;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🧬</div>
+        <div style="font-size: 0.9rem; opacity: 0.9;">Lab Tests</div>
+        <div style="font-size: 2rem; font-weight: bold; margin-top: 0.5rem;">{{ total_lab_tests|default:0 }}</div>
+    </div>
+</div>
+
+<!-- Performance Summary -->
+<div class="grid grid-cols-2" style="gap: 2rem; margin-top: 2rem;">
+    <div class="card">
+        <h2 style="color: #0f766e; margin-top: 0;">📊 Performance Metrics</h2>
+        <div class="panel">
+            <div style="display: grid; gap: 1rem;">
+                <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb;">
+                    <span style="color: #666;">Appointments Completed</span>
+                    <strong>{{ completed_appointments|default:0 }}/{{ total_appointments|default:0 }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb;">
+                    <span style="color: #666;">Completion Rate</span>
+                    <strong style="color: #43e97b;">{{ completion_rate|default:"0%" }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #e5e7eb;">
+                    <span style="color: #666;">Lab Tests Pending</span>
+                    <strong style="color: #f5576c;">{{ pending_lab_tests|default:0 }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.75rem 0;">
+                    <span style="color: #666;">Patient Satisfaction</span>
+                    <strong style="color: #667eea;">★★★★★</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Revenue Summary -->
+    <div class="card">
+        <h2 style="color: #0f766e; margin-top: 0;">💰 Revenue</h2>
+        <div class="panel">
+            <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                <div style="font-size: 0.9rem; opacity: 0.9;">YTD Revenue</div>
+                <div style="font-size: 2.5rem; font-weight: bold; margin-top: 0.5rem;">{{ ytd_revenue|default:"KES 0" }}</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div style="background: #f8fafb; padding: 1rem; border-radius: 8px;">
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.3rem;">This Month</div>
+                    <div style="font-size: 1.3rem; font-weight: bold; color: #1a1a1a;">{{ monthly_revenue|default:"KES 0" }}</div>
+                </div>
+                <div style="background: #f8fafb; padding: 1rem; border-radius: 8px;">
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.3rem;">Pending Payments</div>
+                    <div style="font-size: 1.3rem; font-weight: bold; color: #f5576c;">{{ pending_payments|default:"KES 0" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Appointments -->
+<div class="card" style="margin-top: 2rem;">
+    <h2 style="color: #0f766e; margin-top: 0;">📅 Today's Appointments</h2>
+    <div class="panel">
+        {% if today_appointments %}
+            <div style="display: grid; gap: 1rem;">
+                {% for apt in today_appointments %}
+                <div style="border-left: 4px solid #0f766e; padding: 1rem; background: #f8fafb; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <strong style="color: #1a1a1a; font-size: 1.1rem;">{{ apt.patient_name|default:"Patient" }}</strong>
+                            <p style="margin: 0.3rem 0 0; color: #666; font-size: 0.9rem;">Type: {{ apt.appointment_type|default:"General" }}</p>
+                            <p style="margin: 0.3rem 0 0; color: #999; font-size: 0.85rem;">{{ apt.reason|default:"No reason provided" }}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: bold; color: #0f766e; margin-bottom: 0.3rem;">{{ apt.time|default:"TBA" }}</div>
+                            <span style="background: #e3f2fd; color: #1565c0; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.85rem;">{{ apt.status|default:"Pending" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="text-align: center; color: #999; padding: 2rem 0; margin: 0;">No appointments scheduled for today</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Patient List -->
+<div class="card" style="margin-top: 2rem;">
+    <h2 style="color: #0f766e; margin-top: 0;">👥 My Patients</h2>
+    <div class="panel">
+        {% if patients %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8fafb; border-bottom: 2px solid #e5e7eb;">
+                            <th style="padding: 1rem; text-align: left; color: #666; font-weight: 600;">Patient Name</th>
+                            <th style="padding: 1rem; text-align: left; color: #666; font-weight: 600;">ID Number</th>
+                            <th style="padding: 1rem; text-align: left; color: #666; font-weight: 600;">Last Visited</th>
+                            <th style="padding: 1rem; text-align: left; color: #666; font-weight: 600;">Status</th>
+                            <th style="padding: 1rem; text-align: left; color: #666; font-weight: 600;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient in patients %}
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 1rem;"><strong>{{ patient.name|default:"Patient" }}</strong></td>
+                            <td style="padding: 1rem; color: #666;">{{ patient.patient_id|default:"N/A" }}</td>
+                            <td style="padding: 1rem; color: #666;">{{ patient.last_visit|default:"Never" }}</td>
+                            <td style="padding: 1rem;">
+                                <span style="background: #e8f5e9; color: #2e7d32; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.85rem;">Active</span>
+                            </td>
+                            <td style="padding: 1rem;">
+                                <a href="#" style="color: #0f766e; text-decoration: none; font-weight: 500;">View Details →</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p style="text-align: center; color: #999; padding: 2rem 0; margin: 0;">No patients assigned yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .grid { display: grid; }
+    .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .panel { margin: 1rem 0 0; }
+    .dashboard-header { margin-bottom: 2rem; }
+    @media (max-width: 1024px) {
+        .grid-cols-4 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-2 { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Reports | AFYA LINK{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1 style="margin: 0; font-size: 2.5rem; color: #1a1a1a;">Admin Reports</h1>
+    <p style="margin-top: 0.5rem; color: #666;">Hospital-wide analytics and system statistics</p>
+</div>
+
+<!-- Key Metrics -->
+<div class="grid grid-cols-5" style="margin: 2rem 0;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 12px;">
+        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">👥</div>
+        <div style="font-size: 0.85rem; opacity: 0.9;">Total Patients</div>
+        <div style="font-size: 2rem; font-weight: bold; margin-top: 0.5rem;">{{ total_patients|default:0 }}</div>
+    </div>
+    
+    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 1.5rem; border-radius: 12px;">
+        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">👨‍⚕️</div>
+        <div style="font-size: 0.85rem; opacity: 0.9;">Doctors</div>
+        <div style="font-size: 2rem; font-weight: bold; margin-top: 0.5rem;">{{ total_doctors|default:0 }}</div>
+    </div>
+    
+    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 1.5rem; border-radius: 12px;">
+        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">📅</div>
+        <div style="font-size: 0.85rem; opacity: 0.9;">Appointments</div>
+        <div style="font-size: 2rem; font-weight: bold; margin-top: 0.5rem;">{{ total_appointments|default:0 }}</div>
+    </div>
+    
+    <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 1.5rem; border-radius: 12px;">
+        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">🛏️</div>
+        <div style="font-size: 0.85rem; opacity: 0.9;">Beds</div>
+        <div style="font-size: 2rem; font-weight: bold; margin-top: 0.5rem;">{{ total_beds|default:0 }}</div>
+    </div>
+    
+    <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 1.5rem; border-radius: 12px;">
+        <div style="font-size: 1.8rem; margin-bottom: 0.5rem;">💰</div>
+        <div style="font-size: 0.85rem; opacity: 0.9;">Revenue</div>
+        <div style="font-size: 1.5rem; font-weight: bold; margin-top: 0.5rem;">{{ total_revenue|default:"KES 0" }}</div>
+    </div>
+</div>
+
+<!-- Financial Overview -->
+<div class="grid grid-cols-3" style="gap: 2rem; margin-top: 2rem;">
+    <div class="card">
+        <h2 style="color: #0f766e; margin-top: 0;">💳 Financial Summary</h2>
+        <div class="panel">
+            <div style="display: grid; gap: 1rem;">
+                <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 1rem; border-radius: 8px;">
+                    <div style="font-size: 0.9rem; opacity: 0.9;">Total Billed</div>
+                    <div style="font-size: 1.8rem; font-weight: bold;">{{ total_billed|default:"KES 0" }}</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 8px;">
+                    <div style="font-size: 0.9rem; opacity: 0.9;">Amount Paid</div>
+                    <div style="font-size: 1.8rem; font-weight: bold;">{{ amount_paid|default:"KES 0" }}</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%); color: white; padding: 1rem; border-radius: 8px;">
+                    <div style="font-size: 0.9rem; opacity: 0.9;">Outstanding</div>
+                    <div style="font-size: 1.8rem; font-weight: bold;">{{ pending_amount|default:"KES 0" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ward Occupancy -->
+    <div class="card">
+        <h2 style="color: #0f766e; margin-top: 0;">🛏️ Ward Occupancy</h2>
+        <div class="panel">
+            <div style="text-align: center; padding: 2rem 0;">
+                <div style="font-size: 3rem; font-weight: bold; color: #0f766e;">{{ occupancy_rate|default:"0%" }}</div>
+                <p style="margin: 0.5rem 0 0; color: #666;">{{ occupied_beds|default:0 }}/{{ total_beds|default:0 }} beds occupied</p>
+            </div>
+            <div style="background: #f0f3f7; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 1rem;">
+                <div style="background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); height: 100%; width: {{ occupancy_rate|default:'0' }}; border-radius: 5px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Status -->
+    <div class="card">
+        <h2 style="color: #0f766e; margin-top: 0;">⚙️ System Status</h2>
+        <div class="panel">
+            <div style="display: grid; gap: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f8fafb; border-radius: 6px;">
+                    <span style="color: #666;">Database</span>
+                    <span style="background: #e8f5e9; color: #2e7d32; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.85rem;">✓ Active</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f8fafb; border-radius: 6px;">
+                    <span style="color: #666;">API Server</span>
+                    <span style="background: #e8f5e9; color: #2e7d32; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.85rem;">✓ Active</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #f8fafb; border-radius: 6px;">
+                    <span style="color: #666;">Backups</span>
+                    <span style="background: #e8f5e9; color: #2e7d32; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.85rem;">✓ Updated</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department Performance -->
+<div class="card" style="margin-top: 2rem;">
+    <h2 style="color: #0f766e; margin-top: 0;">📊 Department Performance</h2>
+    <div class="panel">
+        {% if departments %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8fafb; border-bottom: 2px solid #e5e7eb;">
+                            <th style="padding: 1rem; text-align: left; color: #666; font-weight: 600;">Department</th>
+                            <th style="padding: 1rem; text-align: left; color: #666; font-weight: 600;">Doctors</th>
+                            <th style="padding: 1rem; text-align: left; color: #666; font-weight: 600;">Appointments</th>
+                            <th style="padding: 1rem; text-align: left; color: #666; font-weight: 600;">Revenue</th>
+                            <th style="padding: 1rem; text-align: left; color: #666; font-weight: 600;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept in departments %}
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 1rem;"><strong>{{ dept.name|default:"Department" }}</strong></td>
+                            <td style="padding: 1rem; color: #666;">{{ dept.doctor_count|default:0 }}</td>
+                            <td style="padding: 1rem; color: #666;">{{ dept.appointments|default:0 }}</td>
+                            <td style="padding: 1rem; color: #666; font-weight: 600;">{{ dept.revenue|default:"KES 0" }}</td>
+                            <td style="padding: 1rem;">
+                                <span style="background: #e8f5e9; color: #2e7d32; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.85rem;">Active</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p style="text-align: center; color: #999; padding: 2rem 0; margin: 0;">No department data available</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Pharmacy Inventory Alert -->
+<div class="card" style="margin-top: 2rem;">
+    <h2 style="color: #0f766e; margin-top: 0;">⚠️ Pharmacy Stock Alerts</h2>
+    <div class="panel">
+        <div style="display: grid; gap: 1rem;">
+            <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; border-left: 4px solid #ffc107;">
+                <strong style="color: #856404;">{{ low_stock_items|default:0 }} items</strong>
+                <span style="color: #856404;"> running low on stock</span>
+            </div>
+            <div style="background: #f8d7da; padding: 1rem; border-radius: 8px; border-left: 4px solid #dc3545;">
+                <strong style="color: #721c24;">{{ out_of_stock_items|default:0 }} items</strong>
+                <span style="color: #721c24;"> are completely out of stock</span>
+            </div>
+        </div>
+        <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e5e7eb;">
+        <a href="#" style="color: #0f766e; text-decoration: none; font-weight: 500;">View Detailed Inventory Report →</a>
+    </div>
+</div>
+
+<style>
+    .grid { display: grid; }
+    .grid-cols-5 { grid-template-columns: repeat(5, 1fr); }
+    .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .panel { margin: 1rem 0 0; }
+    .dashboard-header { margin-bottom: 2rem; }
+    @media (max-width: 1280px) {
+        .grid-cols-5 { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 1024px) {
+        .grid-cols-3 { grid-template-columns: 1fr; }
+        .grid-cols-5 { grid-template-columns: repeat(2, 1fr); }
+    }
+</style>
+{% endblock %}

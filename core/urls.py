@@ -6,6 +6,9 @@ from .views import (
     DashboardView,
     HomeView,
     RegisterView,
+    PatientDashboardView,
+    DoctorPortalView,
+    AdminReportsView,
     DoctorViewSet,
     PatientViewSet,
     HospitalViewSet,
@@ -38,6 +41,13 @@ from .views import (
     patient_portal_summary,
     patient_medical_records,
     patient_billing_details,
+    doctor_performance_report,
+    hospital_analytics,
+    pharmacy_inventory,
+    export_patient_records_pdf,
+    export_patient_bills_pdf,
+    export_appointments_csv,
+    export_prescriptions_csv,
 )
 
 router = routers.DefaultRouter()
@@ -74,6 +84,9 @@ router.register(r'insurance-claims', InsuranceClaimViewSet, basename='insurancec
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
+    path('patient-dashboard/', PatientDashboardView.as_view(), name='patient_dashboard'),
+    path('doctor-portal/', DoctorPortalView.as_view(), name='doctor_portal'),
+    path('admin-reports/', AdminReportsView.as_view(), name='admin_reports'),
     path('api-frontend/', APIFrontendView.as_view(), name='api_frontend'),
     path('register/', RegisterView.as_view(), name='register'),
     path('accounts/', include('django.contrib.auth.urls')),
@@ -86,4 +99,13 @@ urlpatterns = [
     path('api/patient/portal/', patient_portal_summary, name='patient_portal_summary'),
     path('api/patient/records/', patient_medical_records, name='patient_medical_records'),
     path('api/patient/billing/', patient_billing_details, name='patient_billing_details'),
+    # Analytics & Reports API endpoints
+    path('api/doctor/performance/', doctor_performance_report, name='doctor_performance_report'),
+    path('api/hospital/analytics/', hospital_analytics, name='hospital_analytics'),
+    path('api/pharmacy/inventory/', pharmacy_inventory, name='pharmacy_inventory'),
+    # Data Export endpoints
+    path('api/export/patient-records-pdf/', export_patient_records_pdf, name='export_patient_records_pdf'),
+    path('api/export/patient-bills-pdf/', export_patient_bills_pdf, name='export_patient_bills_pdf'),
+    path('api/export/appointments-csv/', export_appointments_csv, name='export_appointments_csv'),
+    path('api/export/prescriptions-csv/', export_prescriptions_csv, name='export_prescriptions_csv'),
 ]

@@ -55,6 +55,139 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             })
         return context
 
+
+class PatientDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'core/patient_dashboard.html'
+    login_url = 'login'
+    redirect_field_name = 'next'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        if not hasattr(user, 'patient'):
+            return context
+            
+        patient = user.patient
+        
+        # Medical info
+        context['medical_conditions_count'] = MedicalHistory.objects.filter(patient=patient, status='active').count()
+        context['allergies_count'] = Allergy.objects.filter(patient=patient).count()
+        context['medications_count'] = Medication.objects.filter(patient=patient, is_active=True).count()
+        context['severe_allergies'] = Allergy.objects.filter(patient=patient, severity='severe').count()
+        
+        # Appointments
+        upcoming_apts = Appointment.objects.filter(patient=patient, appointment_date__gte=timezone.now()).select_related('doctor__user', 'hospital')
+        context['appointments_count'] = upcoming_apts.count()
+        context['upcoming_appointments'] = upcoming_apts[:5]
+        
+        # Billing
+        bills = PatientBill.objects.filter(patient=patient)
+        total_billed = bills.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        paid_amount = Payment.objects.filter(bill__patient=patient, status='completed').aggregate(Sum('amount'))['amount__sum'] or 0
+        context['total_billed'] = f"KES {total_billed:,.0f}"
+        context['amount_paid'] = f"KES {paid_amount:,.0f}"
+        context['pending_amount'] = f"KES {total_billed - paid_amount:,.0f}"
+        
+        # Emergency contact
+        context['primary_contact'] = EmergencyContact.objects.filter(patient=patient, is_primary=True).first()
+        
+        # Insurance
+        context['insurance'] = PatientInsurance.objects.filter(patient=patient, status='active').first()
+        
+        # Blood type
+        context['blood_type'] = patient.blood_type
+        
+        return context
+
+
+class DoctorPortalView(LoginRequiredMixin, TemplateView):
+    template_name = 'core/doctor_portal.html'
+    login_url = 'login'
+    redirect_field_name = 'next'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        if not hasattr(user, 'doctor'):
+            return context
+            
+        doctor = user.doctor
+        
+        # Appointment stats
+        all_appointments = Appointment.objects.filter(doctor=doctor)
+        context['total_patients'] = Patient.objects.filter(primary_doctor=doctor).count()
+        context['appointments_today'] = all_appointments.filter(appointment_date__date=timezone.now().date()).count()
+        context['total_appointments'] = all_appointments.count()
+        context['completed_appointments'] = all_appointments.filter(status='completed').count()
+        context['completion_rate'] = f"{(all_appointments.filter(status='completed').count() / all_appointments.count() * 100):.0f}%" if all_appointments.count() > 0 else "0%"
+        
+        # Prescription and lab test stats
+        context['total_prescriptions'] = Prescription.objects.filter(doctor=doctor).count()
+        context['total_lab_tests'] = LabTest.objects.filter(doctor=doctor).count()
+        context['pending_lab_tests'] = LabTest.objects.filter(doctor=doctor, result_status__in=['pending', 'in_progress']).count()
+        
+        # Today's appointments
+        today_apts = all_appointments.filter(appointment_date__date=timezone.now().date()).select_related('patient__user', 'hospital')[:5]
+        context['today_appointments'] = today_apts
+        
+        # Revenue
+        revenue = PatientBill.objects.filter(created_at__year=timezone.now().year).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        context['ytd_revenue'] = f"KES {revenue:,.0f}"
+        context['monthly_revenue'] = f"KES {revenue / 12:,.0f}"
+        
+        # Patients
+        context['patients'] = Patient.objects.filter(primary_doctor=doctor)[:10]
+        
+        return context
+
+
+class AdminReportsView(LoginRequiredMixin, TemplateView):
+    template_name = 'core/admin_reports.html'
+    login_url = 'login'
+    redirect_field_name = 'next'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return redirect('dashboard')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Patient and doctor stats
+        context['total_patients'] = Patient.objects.count()
+        context['total_doctors'] = Doctor.objects.count()
+        context['total_appointments'] = Appointment.objects.count()
+        
+        # Hospital stats
+        hospital = Hospital.objects.first()
+        context['total_beds'] = WardBed.objects.filter(hospital=hospital).count() if hospital else 0
+        occupied_beds = WardBed.objects.filter(hospital=hospital, is_occupied=True).count() if hospital else 0
+        total_beds = context['total_beds']
+        context['occupancy_rate'] = f"{(occupied_beds / total_beds * 100):.1f}%" if total_beds > 0 else "0%"
+        context['occupied_beds'] = occupied_beds
+        
+        # Financial stats
+        bills = PatientBill.objects.all()
+        total_billed = bills.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        paid_amount = Payment.objects.filter(status='completed').aggregate(Sum('amount'))['amount__sum'] or 0
+        context['total_billed'] = f"KES {total_billed:,.0f}"
+        context['total_revenue'] = f"KES {total_billed:,.0f}"
+        context['amount_paid'] = f"KES {paid_amount:,.0f}"
+        context['pending_amount'] = f"KES {total_billed - paid_amount:,.0f}"
+        
+        # Pharmacy alerts
+        context['low_stock_items'] = PharmacyStock.objects.filter(quantity__lt=10).count()
+        context['out_of_stock_items'] = PharmacyStock.objects.filter(quantity=0).count()
+        
+        # Department stats
+        departments = Doctor.objects.values('specialization').annotate(count=Count('id'))
+        context['departments'] = departments
+        
+        return context
+
 class APIFrontendView(LoginRequiredMixin, TemplateView):
     template_name = 'core/api_frontend.html'
     login_url = 'login'
@@ -494,3 +627,496 @@ def patient_billing_details(request):
             } for claim in claims
         ],
     })
+
+
+# ============================================
+# Analytics & Reports API Views
+# ============================================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def doctor_performance_report(request):
+    """Get doctor performance metrics and statistics"""
+    user = request.user
+    
+    if not hasattr(user, 'doctor'):
+        return Response({'error': 'Doctor profile not found'}, status=404)
+    
+    doctor = user.doctor
+    
+    # Appointment statistics
+    total_appointments = Appointment.objects.filter(doctor=doctor).count()
+    completed_appointments = Appointment.objects.filter(doctor=doctor, status='completed').count()
+    cancelled_appointments = Appointment.objects.filter(doctor=doctor, status='cancelled').count()
+    pending_appointments = Appointment.objects.filter(doctor=doctor, status='pending').count()
+    
+    # Patient statistics
+    unique_patients = Appointment.objects.filter(doctor=doctor).values('patient').distinct().count()
+    
+    # Revenue (from bills related to doctor's appointments)
+    revenue = PatientBill.objects.filter(
+        created_at__year=timezone.now().year
+    ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    
+    # Prescription statistics
+    total_prescriptions = Prescription.objects.filter(doctor=doctor).count()
+    active_prescriptions = Prescription.objects.filter(doctor=doctor, is_active=True).count()
+    
+    # Lab test statistics
+    total_lab_tests = LabTest.objects.filter(doctor=doctor).count()
+    completed_lab_tests = LabTest.objects.filter(doctor=doctor, result_status='completed').count()
+    
+    return Response({
+        'doctor': {
+            'id': doctor.id,
+            'name': f"Dr. {doctor.user.first_name} {doctor.user.last_name}",
+            'specialization': doctor.specialization,
+            'hospital': doctor.hospital.name,
+            'license_number': doctor.license_number,
+        },
+        'appointments': {
+            'total': total_appointments,
+            'completed': completed_appointments,
+            'pending': pending_appointments,
+            'cancelled': cancelled_appointments,
+            'completion_rate': f"{(completed_appointments / total_appointments * 100):.1f}%" if total_appointments > 0 else "0%",
+        },
+        'patients': {
+            'total_unique': unique_patients,
+        },
+        'prescriptions': {
+            'total': total_prescriptions,
+            'active': active_prescriptions,
+        },
+        'lab_tests': {
+            'total': total_lab_tests,
+            'completed': completed_lab_tests,
+        },
+        'revenue': float(revenue),
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def hospital_analytics(request):
+    """Get hospital-wide analytics and statistics"""
+    user = request.user
+    
+    if not hasattr(user, 'doctor') and not user.is_staff:
+        return Response({'error': 'Access denied'}, status=403)
+    
+    hospital = user.doctor.hospital if hasattr(user, 'doctor') else Hospital.objects.first()
+    
+    # Appointment statistics
+    total_appointments = Appointment.objects.filter(hospital=hospital).count()
+    completed_appointments = Appointment.objects.filter(hospital=hospital, status='completed').count()
+    
+    # Patient statistics
+    total_patients = Patient.objects.filter(hospital=hospital).count()
+    
+    # Doctor statistics
+    total_doctors = Doctor.objects.filter(hospital=hospital).count()
+    
+    # Revenue
+    total_revenue = PatientBill.objects.filter(hospital=hospital).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    paid_revenue = Payment.objects.filter(bill__hospital=hospital, status='completed').aggregate(Sum('amount'))['amount__sum'] or 0
+    pending_revenue = total_revenue - paid_revenue
+    
+    # Ward occupancy
+    total_beds = WardBed.objects.filter(hospital=hospital).count()
+    occupied_beds = WardBed.objects.filter(hospital=hospital, is_occupied=True).count()
+    occupancy_rate = (occupied_beds / total_beds * 100) if total_beds > 0 else 0
+    
+    # Department stats
+    departments = Doctor.objects.filter(hospital=hospital).values('specialization').annotate(count=Count('id'))
+    
+    return Response({
+        'hospital': {
+            'id': hospital.id,
+            'name': hospital.name,
+            'address': hospital.address,
+            'phone': hospital.phone,
+        },
+        'appointments': {
+            'total': total_appointments,
+            'completed': completed_appointments,
+        },
+        'patients': {
+            'total': total_patients,
+        },
+        'staff': {
+            'total_doctors': total_doctors,
+        },
+        'revenue': {
+            'total': float(total_revenue),
+            'paid': float(paid_revenue),
+            'pending': float(pending_revenue),
+        },
+        'ward_occupancy': {
+            'total_beds': total_beds,
+            'occupied_beds': occupied_beds,
+            'occupancy_rate': f"{occupancy_rate:.1f}%",
+        },
+        'departments': [
+            {
+                'specialization': dept['specialization'],
+                'doctor_count': dept['count'],
+            } for dept in departments
+        ],
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def pharmacy_inventory(request):
+    """Get pharmacy inventory and stock levels"""
+    user = request.user
+    
+    if not user.is_staff and not hasattr(user, 'doctor'):
+        return Response({'error': 'Access denied'}, status=403)
+    
+    # All pharmacy stock
+    stock_items = PharmacyStock.objects.all().order_by('-quantity')
+    
+    # Low stock items (less than 10 units)
+    low_stock = PharmacyStock.objects.filter(quantity__lt=10)
+    
+    # Out of stock items
+    out_of_stock = PharmacyStock.objects.filter(quantity=0)
+    
+    # Total inventory value
+    total_value = sum([item.quantity * item.unit_price for item in stock_items])
+    
+    return Response({
+        'summary': {
+            'total_items': stock_items.count(),
+            'low_stock_count': low_stock.count(),
+            'out_of_stock_count': out_of_stock.count(),
+            'total_inventory_value': float(total_value),
+        },
+        'inventory': [
+            {
+                'id': item.id,
+                'medicine_name': item.medicine_name,
+                'quantity': item.quantity,
+                'unit_price': float(item.unit_price),
+                'batch_number': item.batch_number,
+                'expiry_date': item.expiry_date,
+                'total_value': float(item.quantity * item.unit_price),
+                'status': 'out_of_stock' if item.quantity == 0 else 'low_stock' if item.quantity < 10 else 'in_stock',
+            } for item in stock_items
+        ],
+        'low_stock_alert': [
+            {
+                'id': item.id,
+                'medicine_name': item.medicine_name,
+                'current_quantity': item.quantity,
+                'reorder_level': 10,
+            } for item in low_stock
+        ],
+    })
+
+
+# ============================================
+# Data Export Views (PDF & CSV)
+# ============================================
+
+from django.http import HttpResponse, FileResponse
+from io import BytesIO, StringIO
+import csv
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.lib import colors
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_patient_records_pdf(request):
+    """Export patient medical records as PDF"""
+    user = request.user
+    
+    if not hasattr(user, 'patient'):
+        return Response({'error': 'Patient profile not found'}, status=404)
+    
+    patient = user.patient
+    
+    # Create PDF in memory
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    
+    # Container for PDF elements
+    elements = []
+    
+    # Styles
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#0f766e'),
+        spaceAfter=30,
+        alignment=1  # Center
+    )
+    
+    # Title
+    elements.append(Paragraph("MEDICAL RECORDS", title_style))
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Patient Info
+    patient_info = f"""
+    <b>Patient Name:</b> {patient.user.get_full_name()}<br/>
+    <b>Date of Birth:</b> {patient.date_of_birth}<br/>
+    <b>Blood Type:</b> {patient.blood_type}<br/>
+    <b>Contact:</b> {patient.phone}<br/>
+    <b>Report Date:</b> {timezone.now().strftime('%B %d, %Y')}
+    """
+    elements.append(Paragraph(patient_info, styles['Normal']))
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Medical History
+    medical_histories = MedicalHistory.objects.filter(patient=patient)
+    if medical_histories.exists():
+        elements.append(Paragraph("<b>Medical History</b>", styles['Heading2']))
+        mh_data = [['Condition', 'Type', 'Status', 'Severity', 'Diagnosed Date']]
+        for mh in medical_histories:
+            mh_data.append([
+                mh.condition_name,
+                mh.condition_type,
+                mh.status,
+                mh.severity,
+                mh.diagnosed_date.strftime('%b %d, %Y')
+            ])
+        mh_table = Table(mh_data, colWidths=[1.5*inch, 1*inch, 1*inch, 1*inch, 1.2*inch])
+        mh_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0f766e')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+        ]))
+        elements.append(mh_table)
+        elements.append(Spacer(1, 0.2*inch))
+    
+    # Allergies
+    allergies = Allergy.objects.filter(patient=patient)
+    if allergies.exists():
+        elements.append(Paragraph("<b>Allergies</b>", styles['Heading2']))
+        allergy_data = [['Allergen', 'Type', 'Severity', 'Reaction']]
+        for a in allergies:
+            allergy_data.append([a.allergen, a.allergy_type, a.severity, a.reaction])
+        allergy_table = Table(allergy_data, colWidths=[1.5*inch, 1.5*inch, 1.5*inch, 2*inch])
+        allergy_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f5576c')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+        elements.append(allergy_table)
+        elements.append(Spacer(1, 0.2*inch))
+    
+    # Medications
+    medications = Medication.objects.filter(patient=patient, is_active=True)
+    if medications.exists():
+        elements.append(Paragraph("<b>Current Medications</b>", styles['Heading2']))
+        med_data = [['Medication', 'Dosage', 'Frequency', 'Start Date']]
+        for med in medications:
+            med_data.append([
+                med.medication_name,
+                med.dosage,
+                med.frequency,
+                med.start_date.strftime('%b %d, %Y')
+            ])
+        med_table = Table(med_data, colWidths=[2*inch, 1.5*inch, 1.5*inch, 1.5*inch])
+        med_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4facfe')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+        elements.append(med_table)
+    
+    # Build PDF
+    doc.build(elements)
+    
+    # Return PDF as response
+    buffer.seek(0)
+    response = HttpResponse(buffer.read(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="medical_records_{patient.user.username}.pdf"'
+    
+    return response
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_patient_bills_pdf(request):
+    """Export patient bills as PDF"""
+    user = request.user
+    
+    if not hasattr(user, 'patient'):
+        return Response({'error': 'Patient profile not found'}, status=404)
+    
+    patient = user.patient
+    bills = PatientBill.objects.filter(patient=patient).select_related('hospital').prefetch_related('items')
+    
+    # Create PDF
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Title
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#0f766e'),
+        spaceAfter=30,
+        alignment=1
+    )
+    elements.append(Paragraph("BILLING SUMMARY", title_style))
+    elements.append(Spacer(1, 0.2*inch))
+    
+    # Summary
+    total_billed = bills.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    paid = Payment.objects.filter(bill__patient=patient, status='completed').aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    summary_info = f"""
+    <b>Patient:</b> {patient.user.get_full_name()}<br/>
+    <b>Total Billed:</b> KES {total_billed:,.2f}<br/>
+    <b>Amount Paid:</b> KES {paid:,.2f}<br/>
+    <b>Outstanding:</b> KES {total_billed - paid:,.2f}<br/>
+    <b>Report Date:</b> {timezone.now().strftime('%B %d, %Y')}
+    """
+    elements.append(Paragraph(summary_info, styles['Normal']))
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Bills table
+    bill_data = [['Bill #', 'Hospital', 'Amount', 'Status', 'Due Date']]
+    for bill in bills:
+        bill_data.append([
+            bill.bill_number,
+            bill.hospital.name,
+            f"KES {bill.total_amount:,.2f}",
+            bill.status.upper(),
+            bill.due_date.strftime('%b %d, %Y') if bill.due_date else 'N/A'
+        ])
+    
+    bill_table = Table(bill_data, colWidths=[1*inch, 2*inch, 1.5*inch, 1*inch, 1.2*inch])
+    bill_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#667eea')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    elements.append(bill_table)
+    
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    response = HttpResponse(buffer.read(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="billing_summary_{patient.user.username}.pdf"'
+    
+    return response
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_appointments_csv(request):
+    """Export appointments as CSV"""
+    user = request.user
+    
+    if not hasattr(user, 'patient') and not hasattr(user, 'doctor'):
+        return Response({'error': 'Patient or Doctor profile not found'}, status=404)
+    
+    # Get appointments based on user role
+    if hasattr(user, 'patient'):
+        appointments = Appointment.objects.filter(patient=user.patient).select_related('doctor__user', 'hospital')
+    else:
+        appointments = Appointment.objects.filter(doctor=user.doctor).select_related('patient__user', 'hospital')
+    
+    # Create CSV
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="appointments_{timezone.now().strftime("%Y%m%d")}.csv"'
+    
+    writer = csv.writer(response)
+    
+    if hasattr(user, 'patient'):
+        writer.writerow(['Doctor', 'Hospital', 'Date', 'Time', 'Type', 'Status', 'Reason'])
+        for apt in appointments:
+            writer.writerow([
+                f"Dr. {apt.doctor.user.get_full_name()}",
+                apt.hospital.name,
+                apt.appointment_date.strftime('%Y-%m-%d'),
+                apt.appointment_date.strftime('%H:%M'),
+                apt.appointment_type,
+                apt.status,
+                apt.reason or 'N/A'
+            ])
+    else:
+        writer.writerow(['Patient', 'Hospital', 'Date', 'Time', 'Type', 'Status', 'Reason'])
+        for apt in appointments:
+            writer.writerow([
+                apt.patient.user.get_full_name(),
+                apt.hospital.name,
+                apt.appointment_date.strftime('%Y-%m-%d'),
+                apt.appointment_date.strftime('%H:%M'),
+                apt.appointment_type,
+                apt.status,
+                apt.reason or 'N/A'
+            ])
+    
+    return response
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_prescriptions_csv(request):
+    """Export prescriptions as CSV"""
+    user = request.user
+    
+    if not hasattr(user, 'patient') and not hasattr(user, 'doctor'):
+        return Response({'error': 'Patient or Doctor profile not found'}, status=404)
+    
+    # Get prescriptions
+    if hasattr(user, 'patient'):
+        prescriptions = Prescription.objects.filter(patient=user.patient).select_related('doctor__user', 'hospital')
+    else:
+        prescriptions = Prescription.objects.filter(doctor=user.doctor).select_related('patient__user', 'hospital')
+    
+    # Create CSV
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="prescriptions_{timezone.now().strftime("%Y%m%d")}.csv"'
+    
+    writer = csv.writer(response)
+    
+    if hasattr(user, 'patient'):
+        writer.writerow(['Doctor', 'Hospital', 'Date', 'Active', 'Medications'])
+        for rx in prescriptions:
+            meds = ', '.join([item.medication for item in rx.items.all()])
+            writer.writerow([
+                f"Dr. {rx.doctor.user.get_full_name()}",
+                rx.hospital.name,
+                rx.prescribed_date.strftime('%Y-%m-%d'),
+                'Yes' if rx.is_active else 'No',
+                meds or 'N/A'
+            ])
+    else:
+        writer.writerow(['Patient', 'Hospital', 'Date', 'Active', 'Medications'])
+        for rx in prescriptions:
+            meds = ', '.join([item.medication for item in rx.items.all()])
+            writer.writerow([
+                rx.patient.user.get_full_name(),
+                rx.hospital.name,
+                rx.prescribed_date.strftime('%Y-%m-%d'),
+                'Yes' if rx.is_active else 'No',
+                meds or 'N/A'
+            ])
