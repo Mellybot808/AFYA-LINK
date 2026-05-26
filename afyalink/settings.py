@@ -119,6 +119,17 @@ CORS_ALLOW_ALL_ORIGINS = env('CORS_ALLOW_ALL_ORIGINS') or DEBUG
 
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
+# Email settings for password reset and notifications
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = env('EMAIL_HOST', default='localhost')
+EMAIL_PORT = env('EMAIL_PORT', default=1025)
+EMAIL_USE_TLS = env('EMAIL_USE_TLS', default=False)
+EMAIL_USE_SSL = env('EMAIL_USE_SSL', default=False)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='no-reply@afyalink.local')
+SERVER_EMAIL = env('SERVER_EMAIL', default='server@afyalink.local')
+
 # Render gives a public hostname through RENDER_EXTERNAL_HOSTNAME.
 RENDER_EXTERNAL_HOSTNAME = env('RENDER_EXTERNAL_HOSTNAME', default='')
 if RENDER_EXTERNAL_HOSTNAME:

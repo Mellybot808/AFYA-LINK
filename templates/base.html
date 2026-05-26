@@ -59,6 +59,15 @@
         </nav>
     </header>
     <main>
+        {% if messages %}
+            <div style="max-width: 960px; margin: 0 auto 1rem; padding: 0 1rem;">
+                {% for message in messages %}
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 12px; padding: 1rem; margin-bottom: 0.75rem;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
         {% block content %}{% endblock %}
     </main>
 </div>

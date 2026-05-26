@@ -178,6 +178,17 @@ http://localhost:8000/health/
 - `ALLOWED_HOSTS` should include your production hostnames.
 - `DATABASE_URL` should point to your PostgreSQL database.
 - `REDIS_URL` should point to your Redis instance.
+- `EMAIL_BACKEND` can be `django.core.mail.backends.smtp.EmailBackend` for real email or `django.core.mail.backends.console.EmailBackend` for local testing.
+
+### Local email testing
+
+For local SMTP debugging, install `aiosmtpd` and run:
+
+```bash
+python -m aiosmtpd -n -l localhost:1025
+```
+
+Then open `/accounts/password_reset/` and submit the admin email. The email body will be printed in the SMTP debug server console.
 
 ### Fast local startup without Docker
 
