@@ -3,8 +3,8 @@ services:
     name: afyalink
     env: python
     region: oregon
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn afyalink.wsgi --workers 2
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn afyalink.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: DEBUG
         value: "False"
@@ -13,6 +13,6 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DISABLE_COLLECTSTATIC
-        value: "1"
+        value: "0"
     autoDeploy: true
     repo: https://github.com/Mellybot808/AFYA-LINK
