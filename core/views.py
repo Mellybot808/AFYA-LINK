@@ -1,8 +1,10 @@
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView
+from django.http import JsonResponse
 from rest_framework import viewsets, permissions
 from .models import (
     Doctor, Patient, Hospital, HealthRecord, Medic, VisitRequest, Visit, Appointment, 
@@ -29,6 +31,11 @@ class RegisterView(CreateView):
     form_class = UserCreationForm
     success_url = reverse_lazy('login')
     template_name = 'registration/register.html'
+
+
+def health_check(request):
+    return JsonResponse({'status': 'ok', 'service': 'AfyaLink', 'environment': 'production' if not settings.DEBUG else 'development'})
+
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'core/dashboard.html'

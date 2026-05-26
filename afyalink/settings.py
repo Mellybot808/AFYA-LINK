@@ -1,13 +1,33 @@
-import os
+import environ
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'change-me-before-production'
-DEBUG = True
-ALLOWED_HOSTS = []
+env = environ.Env(
+    DEBUG=(bool, True),
+    SECRET_KEY=(str, 'change-me-before-production'),
+    ALLOWED_HOSTS=(list, ['localhost', '127.0.0.1']),
+    CORS_ALLOWED_ORIGINS=(list, []),
+    CORS_ALLOW_ALL_ORIGINS=(bool, False),
+    DATABASE_URL=(str, f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
+    REDIS_URL=(str, 'redis://localhost:6379/0'),
+    SECURE_SSL_REDIRECT=(bool, False),
+    SESSION_COOKIE_SECURE=(bool, False),
+    CSRF_COOKIE_SECURE=(bool, False),
+    SECURE_HSTS_SECONDS=(int, 0),
+    SECURE_HSTS_INCLUDE_SUBDOMAINS=(bool, False),
+    SECURE_HSTS_PRELOAD=(bool, False),
+    SECURE_REFERRER_POLICY=(str, 'same-origin'),
+)
+
+environ.Env.read_env(BASE_DIR / '.env')
+
+SECRET_KEY = env('SECRET_KEY')
+DEBUG = env('DEBUG')
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -21,6 +41,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -50,10 +72,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'afyalink.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': env.db(default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -78,6 +97,7 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SITE_NAME = 'AFYA LINK'
@@ -86,7 +106,19 @@ SITE_TITLE = 'AFYA LINK | Smart Health Platform'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
-# REST Framework with JWT Authentication
+SECURE_SSL_REDIRECT = env('SECURE_SSL_REDIRECT')
+SESSION_COOKIE_SECURE = env('SESSION_COOKIE_SECURE')
+CSRF_COOKIE_SECURE = env('CSRF_COOKIE_SECURE')
+SECURE_HSTS_SECONDS = env('SECURE_HSTS_SECONDS')
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env('SECURE_HSTS_INCLUDE_SUBDOMAINS')
+SECURE_HSTS_PRELOAD = env('SECURE_HSTS_PRELOAD')
+SECURE_REFERRER_POLICY = env('SECURE_REFERRER_POLICY')
+
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS')
+CORS_ALLOW_ALL_ORIGINS = env('CORS_ALLOW_ALL_ORIGINS') or DEBUG
+
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -97,7 +129,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-# JWT Settings
 from datetime import timedelta
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),
@@ -107,9 +138,8 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# Celery Configuration
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = env('REDIS_URL')
+CELERY_RESULT_BACKEND = env('REDIS_URL')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

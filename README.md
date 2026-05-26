@@ -130,3 +130,61 @@ Since you're in the idea-collection phase, here are some feature directions to e
 
 - The project uses SQLite by default for local development.
 - Add app-specific features in `core/models.py`, `core/views.py`, and `core/urls.py`.
+
+## Production and Deployment
+
+This project is now container-ready for modern hospital deployments.
+
+### Recommended production stack
+
+- PostgreSQL for persistent database storage
+- Redis for Celery task brokering and caching
+- Gunicorn as the WSGI server
+- WhiteNoise for static file serving in production
+- Docker and Docker Compose for reproducible deployment
+
+### Available deployment files
+
+- `Dockerfile` — builds the Python application container
+- `docker-compose.yml` — orchestrates web, worker, beat, PostgreSQL, and Redis
+- `.env.example` — environment variables for production and local Docker
+- `Procfile` — Heroku-style process declarations
+- `.dockerignore` — files to exclude from Docker contexts
+
+### How to run locally with Docker
+
+1. Copy `.env.example` to `.env` and update secrets.
+2. Build and start the stack:
+
+```bash
+docker compose up --build
+```
+
+3. Visit the application at:
+
+```text
+http://localhost:8000/
+```
+
+4. Check the service health endpoint:
+
+```text
+http://localhost:8000/health/
+```
+
+### Notes on environment variables
+
+- `SECRET_KEY` should be a long unique secret in production.
+- `ALLOWED_HOSTS` should include your production hostnames.
+- `DATABASE_URL` should point to your PostgreSQL database.
+- `REDIS_URL` should point to your Redis instance.
+
+### Fast local startup without Docker
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```

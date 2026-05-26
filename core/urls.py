@@ -48,6 +48,7 @@ from .views import (
     export_patient_bills_pdf,
     export_appointments_csv,
     export_prescriptions_csv,
+    health_check,
 )
 
 router = routers.DefaultRouter()
@@ -90,6 +91,7 @@ urlpatterns = [
     path('api-frontend/', APIFrontendView.as_view(), name='api_frontend'),
     path('register/', RegisterView.as_view(), name='register'),
     path('accounts/', include('django.contrib.auth.urls')),
+    path('health/', health_check, name='health_check'),
     path('api/', include(router.urls)),
     # JWT Token endpoints
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
