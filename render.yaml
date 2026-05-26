@@ -4,7 +4,7 @@ services:
     env: python
     region: oregon
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-    startCommand: gunicorn afyalink.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: python manage.py migrate --noinput && gunicorn afyalink.wsgi:application --bind 0.0.0.0:$PORT --workers 2
     envVars:
       - key: DEBUG
         value: "False"
