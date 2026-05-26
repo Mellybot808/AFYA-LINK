@@ -4,37 +4,50 @@
 
 {% block content %}
 <section class="hero">
-    <div>
-        <div style="font-size: 4rem; margin-bottom: 1rem;">💚</div>
-        <h1 style="margin-bottom: 0.5rem; font-size: 3.5rem;">AFYA LINK</h1>
-        <p style="font-size: 1.25rem; margin-bottom: 2rem; color: #555;">Smart health. Stronger lives.</p>
-        <p style="max-width: 700px; margin: 0 auto 2rem; font-size: 1.05rem; line-height: 1.8; color: #666;">A modern health platform. Securely manage hospitals, doctors, patients, and health records with a powerful REST API.</p>
-        
-        <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 3rem;">
-            {% if user.is_authenticated %}
-                <a href="/dashboard/" class="button" style="text-decoration: none;">📊 Go to Dashboard</a>
-                <a href="/api-frontend/" class="button secondary" style="text-decoration: none;">🔗 API Explorer</a>
-            {% else %}
-                <a href="/accounts/login/" class="button" style="text-decoration: none;">🔐 Sign In</a>
-                <a href="/register/" class="button secondary" style="text-decoration: none;">📝 Register</a>
-            {% endif %}
-        </div>
-        
-        <div class="stats">
-            <div class="stat-card">
-                <div style="font-size: 2rem; margin-bottom: 0.5rem;">💼</div>
-                <div class="label">Full REST API</div>
-                <div class="value" style="font-size: 1.1rem; color: #0f766e; font-weight: 600;">/api/</div>
+    <div style="max-width: 1080px; margin: 0 auto;">
+        <div style="display: grid; gap: 3rem; align-items: center; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+            <div>
+                <div style="font-size: 4rem; margin-bottom: 1rem;">💚</div>
+                <h1 style="margin-bottom: 0.75rem; font-size: clamp(2.5rem, 4vw, 3.5rem); line-height: 1.05;">AFYA LINK</h1>
+                <p style="font-size: 1.18rem; margin-bottom: 1rem; color: #334155; max-width: 720px;">A modern hospital platform that unifies patient care, clinician workflows, and operational data in a secure, extensible system.</p>
+                <p style="max-width: 680px; margin-bottom: 2rem; font-size: 1rem; line-height: 1.9; color: #556b8a;">Deploy fast with REST APIs, role-based dashboards, mobile-ready workflows and a production-ready deployment stack for hospitals and clinics.</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                    {% if user.is_authenticated %}
+                        <a href="/dashboard/" class="button">Go to dashboard</a>
+                        <a href="/api-frontend/" class="button secondary">Explore API</a>
+                    {% else %}
+                        <a href="/accounts/login/" class="button">Sign in</a>
+                        <a href="/register/" class="button secondary">Register</a>
+                    {% endif %}
+                </div>
             </div>
-            <div class="stat-card">
-                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📱</div>
-                <div class="label">Personalized Dashboard</div>
-                <div class="value" style="font-size: 1.1rem; color: #0f766e; font-weight: 600;">/dashboard/</div>
-            </div>
-            <div class="stat-card">
-                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎛️</div>
-                <div class="label">Admin Interface</div>
-                <div class="value" style="font-size: 1.1rem; color: #0f766e; font-weight: 600;">/admin/</div>
+            <div style="display: grid; gap: 1rem;">
+                <div class="card" style="padding: 1.75rem; border-radius: 22px; background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); border: 1px solid rgba(15, 118, 110, 0.12);">
+                    <h2 style="margin: 0 0 0.75rem; color: #0f766e;">Launch points</h2>
+                    <div style="display: grid; gap: 1rem;">
+                        <a href="/api/" class="card" style="display: block; padding: 1rem 1.2rem; border-radius: 18px; background: white; border: 1px solid #e2e8f0; text-decoration: none; color: #0f766e;">
+                            <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;">Full REST API</div>
+                            <div style="color: #475569;">Explore the full CRUD API for clinicians, patients, labs, pharmacy, billing and queues.</div>
+                        </a>
+                        <a href="/dashboard/" class="card" style="display: block; padding: 1rem 1.2rem; border-radius: 18px; background: white; border: 1px solid #e2e8f0; text-decoration: none; color: #0f766e;">
+                            <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;">Personalized Dashboard</div>
+                            <div style="color: #475569;">View appointment summaries, notifications, and patient metrics in one place.</div>
+                        </a>
+                        <a href="/admin/" class="card" style="display: block; padding: 1rem 1.2rem; border-radius: 18px; background: white; border: 1px solid #e2e8f0; text-decoration: none; color: #0f766e;">
+                            <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;">Admin interface</div>
+                            <div style="color: #475569;">Manage users, clinical modules, inventory, and reporting from Django Admin.</div>
+                        </a>
+                    </div>
+                </div>
+                <div class="card" style="padding: 1.75rem; border-radius: 22px; background: linear-gradient(180deg, #eef7ff 0%, #f8fbff 100%); border: 1px solid rgba(59, 130, 246, 0.15);">
+                    <h2 style="margin: 0 0 0.75rem; color: #1d4ed8;">Hospital-ready features</h2>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 0.85rem; color: #334155;">
+                        <li>✅ Patient & doctor records</li>
+                        <li>✅ Lab test ordering & results</li>
+                        <li>✅ Pharmacy stock and dispensing</li>
+                        <li>✅ Billing, payments, queues, and triage</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
